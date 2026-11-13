@@ -11,7 +11,7 @@
     <groupId>com.buguagaoshu</groupId>
     <artifactId>tiktube</artifactId>
     <version>1.4.0</version>
-    <name>PornTube</name>
+    <name>Tiktube</name>
     <description>一个模仿YouTube的能发弹幕的视频网站</description>
 
     <properties>

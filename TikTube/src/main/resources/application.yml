@@ -3,7 +3,7 @@ tiktube:
   # 默认 false
   is-the-proxy-configured: false
   # IP地址数据库
-  ip-db-path: C:\\data\\code\\Spring\\PornTube\\TikTube\\ip2region_v4.xdb
+  ip-db-path: C:\\data\\code\\\spring\\\PornTube\\TikTube\\ip2region_v4.xdb
   # 是否启用 redis 缓存，默认 false，开启后需在配置文件中增加 redis 配置项目
   # 开启后：计数/限流/验证码/TOTP 等待验证状态直接存 Redis；
   #        热门榜、分类、站点设置、AI 配置、广告、对象存储这些快照缓存改为各实例通过 Redis 版本号对齐，

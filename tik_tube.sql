@@ -51,7 +51,9 @@ CREATE TABLE `article`  (
   INDEX `idx_article_user`(`user_id`) USING BTREE,
   INDEX `idx_article_tag`(`tag`) USING BTREE,
   -- 热门榜、首页 feed、标签索引构建都按 type+status+examine_status 过滤再按 create_time 排序/取范围
-  INDEX `idx_video_create_time`(`type`, `status`, `examine_status`, `create_time`) USING BTREE
+  INDEX `idx_video_create_time`(`type`, `status`, `examine_status`, `create_time`) USING BTREE,
+  -- 管理后台概览按天统计新发布稿件：(未删除, 时间)
+  INDEX `idx_article_status_time`(`status`, `create_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '视频，图片，文章 发帖表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -102,7 +104,9 @@ CREATE TABLE `comment`  (
   -- 二级评论列表按根评论ID分页查询（CommentServiceImpl#querySecondComment）
   INDEX `idx_comment_root`(`comment_id`) USING BTREE,
   -- 创作中心按天统计评论新增：(稿件, 正常评论, 时间)
-  INDEX `idx_comment_article_time`(`article_id`, `status`, `create_time`) USING BTREE
+  INDEX `idx_comment_article_time`(`article_id`, `status`, `create_time`) USING BTREE,
+  -- 管理后台概览按天统计全站评论新增：(正常评论, 时间)
+  INDEX `idx_comment_status_time`(`status`, `create_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -129,7 +133,9 @@ CREATE TABLE `danmaku`  (
   PRIMARY KEY (`id`) USING BTREE,
   -- 视频弹幕列表 + 创作中心按天统计弹幕新增，(video_id, create_time) 前缀同时覆盖两处
   INDEX `idx_danmaku_video_time`(`video_id`, `create_time`) USING BTREE,
-  INDEX `idx_danmaku_author`(`author`) USING BTREE
+  INDEX `idx_danmaku_author`(`author`) USING BTREE,
+  -- 管理后台概览按天统计全站弹幕新增：(正常弹幕, 时间)
+  INDEX `idx_danmaku_status_time`(`status`, `create_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '弹幕表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -163,6 +169,8 @@ CREATE TABLE `favorites_table`  (
   UNIQUE INDEX `uk_favorites_user_article`(`user_id`, `artice_id`) USING BTREE,
   -- 创作中心按天统计收藏新增
   INDEX `idx_fav_article_time`(`artice_id`, `create_time`) USING BTREE,
+  -- 管理后台概览按天统计全站收藏新增
+  INDEX `idx_fav_create_time`(`create_time`) USING BTREE,
   -- 公开收藏夹内容列表 / 删除收藏夹时迁移收藏
   INDEX `idx_favorites_label`(`favorites_label_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '收藏' ROW_FORMAT = DYNAMIC;
@@ -250,7 +258,9 @@ CREATE TABLE `like_table`  (
   -- (用户, 类型, 对象) 唯一，防止重复点赞；单条与评论列表批量点赞状态查询按这三列等值命中
   UNIQUE INDEX `uk_like_user_obj`(`user_id`, `type`, `like_obj_id`) USING BTREE,
   -- 创作中心按天统计点赞新增：(对象, 稿件/评论, 时间)
-  INDEX `idx_like_obj_time`(`like_obj_id`, `type`, `create_time`) USING BTREE
+  INDEX `idx_like_obj_time`(`like_obj_id`, `type`, `create_time`) USING BTREE,
+  -- 管理后台概览按天统计全站点赞新增：(稿件/评论, 时间)
+  INDEX `idx_like_type_time`(`type`, `create_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '点赞' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -313,7 +323,9 @@ CREATE TABLE `play_recording`  (
   -- 用户 x 稿件 x 分P 唯一：播放记录落库走 INSERT ... ON DUPLICATE KEY UPDATE，靠这个约束去重
   UNIQUE INDEX `uk_play_user_article_video`(`user_id`, `article_id`, `video_id`) USING BTREE,
   -- 创作中心按天统计观看人数：(稿件, 更新时间)，前缀同时覆盖按稿件查询
-  INDEX `idx_play_article_update`(`article_id`, `update_time`) USING BTREE
+  INDEX `idx_play_article_update`(`article_id`, `update_time`) USING BTREE,
+  -- 管理后台概览按天统计全站观看人数：按更新时间范围扫描
+  INDEX `idx_play_update_time`(`update_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '播放记录（用户 x 分P 唯一，作为观看人数去重依据）' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -439,7 +451,9 @@ CREATE TABLE `oss_config`  (
   `creator_id` bigint NULL DEFAULT NULL COMMENT '创建人',
   `updater_id` bigint NULL DEFAULT NULL COMMENT '更新人',
   `update_time` bigint NULL DEFAULT NULL COMMENT '更新时间（毫秒时间戳）',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  -- 管理后台概览按天统计新注册用户
+  INDEX `idx_user_create_time`(`create_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '对象存储配置' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
