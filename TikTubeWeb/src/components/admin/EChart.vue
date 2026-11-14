@@ -5,7 +5,7 @@
   option 传 null 表示暂无内容，组件只占位不初始化，等首次有数据再懒加载 echarts。
 -->
 <script setup>
-import { onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 
 const props = defineProps({
   option: {
@@ -41,9 +41,11 @@ async function render() {
   chart.value.setOption(props.option, { notMerge: true })
 }
 
-// 主题色由调用方算进 option（computed 依赖 useTheme），深浅切换时 option 引用变化即重绘。
-// flush: 'post' 保证 immediate 首次回调在模板 ref 绑定之后执行（setup 阶段 el 还是 null）
-watch(() => props.option, render, { deep: true, immediate: true, flush: 'post' })
+// 首次渲染必须等模板 ref 绑定后执行：immediate 回调在 setup 阶段同步运行，那时 el 还是 null，
+// 而本组件挂载时 option 往往已非空且不再变化，watch 不会再次触发，图表将永远不初始化
+onMounted(render)
+// 主题色由调用方算进 option（computed 依赖 useTheme），深浅切换 / 切指标时 option 引用变化即重绘
+watch(() => props.option, render, { deep: true })
 
 onBeforeUnmount(() => {
   disposed = true
